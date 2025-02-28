@@ -1,4 +1,4 @@
-package ui.Roles.Tutor
+package ui.roles.tutor
 
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable

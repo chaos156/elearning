@@ -1,18 +1,20 @@
 package com.example.elearning
 
+//import ui.roles.student.ViewStudentProfileScreen
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
-import androidx.navigation.compose.rememberNavController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
+import androidx.navigation.compose.rememberNavController
 import com.google.firebase.FirebaseApp
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import ui.LoginScreen
-import ui.Roles.Student.StudentDashboard
-import ui.Roles.Tutor.TutorDashboard
 import ui.SignupScreen
+import ui.roles.student.StudentDashboard
+import ui.roles.student.ViewStudentProfile
+import ui.roles.tutor.TutorDashboard
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -27,7 +29,8 @@ class MainActivity : ComponentActivity() {
                 composable("signup") { SignupScreen(navController, auth, db) }
                 composable("login") { LoginScreen(navController, auth, db) }
                 composable("tutorWelcome") { TutorDashboard() }
-                composable("studentWelcome") { StudentDashboard() }
+                composable("studentWelcome") { StudentDashboard(navController) }
+                composable("viewProfile") { ViewStudentProfile(navController) }
             }
         }
     }

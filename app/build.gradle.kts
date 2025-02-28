@@ -69,4 +69,19 @@ dependencies {
     implementation(libs.ui.tooling.preview)
     implementation(libs.androidx.lifecycle.runtime.ktx.v287)
     implementation(libs.androidx.activity.compose.v1101)
+    implementation(libs.firebase.storage.ktx)
+    implementation(libs.material3)
+    implementation(libs.ui.tooling.preview)
+    implementation(libs.material3)
+    implementation(libs.androidx.material.v178)
+    implementation(libs.ui.tooling.preview)
+    implementation (libs.kotlinx.coroutines.android)
+
+    implementation (libs.material)
+
+    implementation (libs.google.firebase.auth.ktx)
+    implementation (libs.google.firebase.firestore.ktx)
+    implementation (libs.material3)
+// Check the latest BOM version
+
 }
