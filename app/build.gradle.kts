@@ -76,6 +76,7 @@ dependencies {
     implementation(libs.androidx.material.v178)
     implementation(libs.ui.tooling.preview)
     implementation (libs.kotlinx.coroutines.android)
+    implementation(libs.coil.compose)
 
     implementation (libs.material)
 
