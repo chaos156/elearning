@@ -8,7 +8,6 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -36,7 +35,6 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.input.KeyboardType
@@ -48,7 +46,7 @@ import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.storage.FirebaseStorage
 import kotlinx.coroutines.tasks.await
 
-// Data class for LessonPage
+// Data class for Lesson Page
 data class LessonPage(
     var textContent: String = "",
     var imageUrl: String? = null
@@ -64,13 +62,10 @@ fun CreateLesson(navController: NavController) {
 
     var lessonTitle by remember { mutableStateOf("") }
     var lessonPages by remember { mutableStateOf(mutableListOf(LessonPage())) }
-
     var selectedCourse by remember { mutableStateOf<String?>(null) }
-
     var expanded by remember { mutableStateOf(false) }
-    var imageUri by remember { mutableStateOf<Uri?>(null) }
 
-    // Fetch courses for the dropdown
+    // Fetch courses for dropdown
     var courses by remember { mutableStateOf(listOf<String>()) }
 
     LaunchedEffect(Unit) {
@@ -79,17 +74,6 @@ fun CreateLesson(navController: NavController) {
             .get().await()
         courses = courseDocs.documents.map { it.id }
     }
-
-    // Image Picker Launcher for selecting an image
-    val imagePickerLauncher =
-        rememberLauncherForActivityResult(ActivityResultContracts.GetContent()) { uri ->
-            imageUri = uri
-            if (uri != null) {
-                uploadImageToFirebase(storage, uri) { url ->
-                    lessonPages[0].imageUrl = url // Set the image URL to lesson page
-                }
-            }
-        }
 
     Scaffold(
         topBar = {
@@ -136,14 +120,22 @@ fun CreateLesson(navController: NavController) {
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            // Add Lesson Page(s)
+            // Lesson Pages List
             Text("Lesson Pages", style = MaterialTheme.typography.h6)
             LazyColumn {
                 items(lessonPages.size) { index ->
                     LessonPageInput(
                         lessonPage = lessonPages[index],
-                        onTextChange = { lessonPages[index].textContent = it },
-                        onImageSelected = { lessonPages[index].imageUrl = it }
+                        onTextChange = { updatedText ->
+                            lessonPages = lessonPages.toMutableList().apply {
+                                this[index] = this[index].copy(textContent = updatedText)
+                            }
+                        },
+                        onImageSelected = { updatedImageUrl ->
+                            lessonPages = lessonPages.toMutableList().apply {
+                                this[index] = this[index].copy(imageUrl = updatedImageUrl)
+                            }
+                        }
                     )
                 }
             }
@@ -151,7 +143,7 @@ fun CreateLesson(navController: NavController) {
             Spacer(modifier = Modifier.height(16.dp))
 
             // Add Page Button
-            Button(onClick = { lessonPages.add(LessonPage()) }) {
+            Button(onClick = { lessonPages = lessonPages.toMutableList().apply { add(LessonPage()) } }) {
                 Text("Add Page")
             }
 
@@ -204,6 +196,8 @@ fun LessonPageInput(
     val storage = FirebaseStorage.getInstance()
     val context = LocalContext.current
     var imageUri by remember { mutableStateOf<Uri?>(null) }
+
+    // Image Picker
     val imagePickerLauncher =
         rememberLauncherForActivityResult(ActivityResultContracts.GetContent()) { uri ->
             if (uri != null) {
@@ -230,17 +224,14 @@ fun LessonPageInput(
 
             Spacer(modifier = Modifier.height(8.dp))
 
-            Row(
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Button(onClick = { imagePickerLauncher.launch("image/*") }) {
-                    Text("Select Image")
-                }
+            // Select Image Button
+            Button(onClick = { imagePickerLauncher.launch("image/*") }) {
+                Text("Select Image")
             }
 
             Spacer(modifier = Modifier.height(8.dp))
 
-            // Display the selected image
+            // Display Selected Image
             if (lessonPage.imageUrl != null) {
                 Image(
                     painter = rememberAsyncImagePainter(lessonPage.imageUrl),
