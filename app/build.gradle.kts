@@ -53,6 +53,7 @@ dependencies {
     implementation(libs.androidx.navigation.runtime.ktx)
     implementation(libs.androidx.navigation.runtime.android)
     implementation(libs.androidx.navigation.compose)
+    implementation(libs.firebase.functions.ktx)
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
@@ -83,6 +84,14 @@ dependencies {
     implementation (libs.google.firebase.auth.ktx)
     implementation (libs.google.firebase.firestore.ktx)
     implementation (libs.material3)
+    implementation(libs.coil.compose)
+    implementation (libs.androidx.ui.text)
+    implementation (libs.androidx.material.v178)
+    implementation ("com.google.api-client:google-api-client-android:1.35.0")
+    implementation ("com.google.oauth-client:google-oauth-client-android:1.35.0")
+    implementation ("com.google.http-client:google-http-client-gson:1.39.2")
+    implementation ("com.google.apis:google-api-services-gmail:v1-rev305-1.25.0")
 // Check the latest BOM version
+    implementation ("com.google.android.gms:play-services-auth:20.0.1")
 
 }

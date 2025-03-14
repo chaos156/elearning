@@ -43,14 +43,40 @@ import androidx.navigation.NavController
 import coil.compose.rememberAsyncImagePainter
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.functions.FirebaseFunctions
 import com.google.firebase.storage.FirebaseStorage
 import kotlinx.coroutines.tasks.await
+
 
 // Data class for Lesson Page
 data class LessonPage(
     var textContent: String = "",
     var imageUrl: String? = null
 )
+
+fun sendEmailNotifications(
+    functions: FirebaseFunctions,  // Expecting a FirebaseFunctions instance
+    studentEmails: List<String>, // 🔹 Expecting a list of student emails
+    lessonTitle: String,
+    courseId: String
+
+) {
+    val data = hashMapOf(
+        "studentEmails" to studentEmails,
+        "lessonTitle" to lessonTitle,
+        "courseId" to courseId
+    )
+
+
+    functions.getHttpsCallable("sendLessonNotification")
+        .call(data)
+        .addOnSuccessListener {
+            println("✅ Email notifications sent successfully!")
+        }
+        .addOnFailureListener { e ->
+            println("❌ Error sending emails: ${e.message}")
+        }
+}
 
 @SuppressLint("UnusedMaterialScaffoldPaddingParameter")
 @Composable
@@ -60,6 +86,8 @@ fun CreateLesson(navController: NavController) {
     val db = FirebaseFirestore.getInstance()
     val storage = FirebaseStorage.getInstance()
 
+    val functions = FirebaseFunctions.getInstance()
+
     var lessonTitle by remember { mutableStateOf("") }
     var lessonPages by remember { mutableStateOf(mutableListOf(LessonPage())) }
     var selectedCourse by remember { mutableStateOf<String?>(null) }
@@ -68,11 +96,30 @@ fun CreateLesson(navController: NavController) {
     // Fetch courses for dropdown
     var courses by remember { mutableStateOf(listOf<String>()) }
 
+    // Fetch the highest lesson order for the selected course
+    var highestLessonOrder by remember { mutableStateOf(0) }
+
+    // Fetch course list on first launch
     LaunchedEffect(Unit) {
         val courseDocs = db.collection("courses")
             .whereEqualTo("tutorId", auth.currentUser?.uid)
             .get().await()
         courses = courseDocs.documents.map { it.id }
+    }
+
+    // Fetch the highest lesson order when the selected course changes
+    LaunchedEffect(selectedCourse) {
+        if (selectedCourse != null) {
+            // Get lessons for the selected course and find the highest order
+            val lessonsQuery = db.collection("lessons")
+                .whereEqualTo("courseId", selectedCourse)
+                .get().await()
+
+            // Set the highest lessonOrder based on the existing lessons
+            highestLessonOrder = lessonsQuery.documents.maxOfOrNull {
+                it.getLong("lessonOrder")?.toInt() ?: 0
+            } ?: 0
+        }
     }
 
     Scaffold(
@@ -143,7 +190,9 @@ fun CreateLesson(navController: NavController) {
             Spacer(modifier = Modifier.height(16.dp))
 
             // Add Page Button
-            Button(onClick = { lessonPages = lessonPages.toMutableList().apply { add(LessonPage()) } }) {
+            Button(onClick = {
+                lessonPages = lessonPages.toMutableList().apply { add(LessonPage()) }
+            }) {
                 Text("Add Page")
             }
 
@@ -154,10 +203,14 @@ fun CreateLesson(navController: NavController) {
                 onClick = {
                     val user = auth.currentUser
                     if (user != null && selectedCourse != null) {
+                        // Increment lessonOrder based on the highest order
+                        val newLessonOrder = highestLessonOrder + 1
+
                         val lessonData = hashMapOf(
                             "title" to lessonTitle,
                             "courseId" to selectedCourse,
-                            "tutorId" to user.uid
+                            "tutorId" to user.uid,
+                            "lessonOrder" to newLessonOrder
                         )
 
                         // Save lesson and pages
@@ -173,9 +226,31 @@ fun CreateLesson(navController: NavController) {
                                 }
                                 Toast.makeText(context, "Lesson Created Successfully", Toast.LENGTH_SHORT).show()
                             }
+
+
                             .addOnFailureListener { e ->
                                 Toast.makeText(context, "Error: ${e.message}", Toast.LENGTH_SHORT).show()
                             }
+
+                        db.collection("enrollments")
+                            .whereEqualTo("courseId", selectedCourse)
+                            .get()
+                            .addOnSuccessListener { enrollmentDocs ->
+                                val studentEmails = enrollmentDocs.documents.mapNotNull {
+                                    it.getString("email") // 🔹 Ensure email field exists
+                                }
+
+                                // ✅ Send email only if students are enrolled
+                                if (studentEmails.isNotEmpty()) {
+                                    sendEmailNotifications(
+                                        functions, // 🔹 Correctly passing the functions instance
+                                        studentEmails, // 🔹 Correctly passing the list of emails
+                                        lessonTitle, // 🔹 Lesson title
+                                        selectedCourse!! // 🔹 Course ID
+                                    )
+                                }
+                            }
+
                     }
                 },
                 modifier = Modifier.fillMaxWidth()
@@ -185,6 +260,8 @@ fun CreateLesson(navController: NavController) {
         }
     }
 }
+
+
 
 // Composable for each lesson page input
 @Composable

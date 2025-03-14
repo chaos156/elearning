@@ -26,8 +26,10 @@ materialVersion = "1.7.8"
 navigationRuntimeKtx = "2.8.8"
 navigationRuntimeAndroid = "2.9.0-alpha07"
 ui = "1.5.0"
+uiText = "1.7.8"
 uiToolingPreview = "1.7.8"
 navigationCompose = "2.8.8"
+firebaseFunctionsKtx = "21.1.1"
 
 [libraries]
 accompanist-image-picker = { module = "com.google.accompanist:accompanist-image-picker", version.ref = "accompanistImagePicker" }
@@ -36,6 +38,7 @@ androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = 
 androidx-lifecycle-runtime-ktx-v287 = { module = "androidx.lifecycle:lifecycle-runtime-ktx", version.ref = "lifecycleRuntimeKtxVersion" }
 androidx-material = { module = "androidx.compose.material:material", version.ref = "material" }
 androidx-material-v178 = { module = "androidx.compose.material:material", version.ref = "materialVersion" }
+androidx-ui-text = { module = "androidx.compose.ui:ui-text", version.ref = "uiText" }
 coil-compose = { module = "io.coil-kt:coil-compose", version.ref = "coilCompose" }
 firebase-analytics = { module = "com.google.firebase:firebase-analytics" }
 firebase-auth-ktx = { module = "com.google.firebase:firebase-auth-ktx" }
@@ -68,6 +71,7 @@ material3 = { module = "androidx.compose.material3:material3", version.ref = "ma
 ui = { module = "androidx.compose.ui:ui", version.ref = "ui" }
 ui-tooling-preview = { module = "androidx.compose.ui:ui-tooling-preview", version.ref = "uiToolingPreview" }
 androidx-navigation-compose = { group = "androidx.navigation", name = "navigation-compose", version.ref = "navigationCompose" }
+firebase-functions-ktx = { group = "com.google.firebase", name = "firebase-functions-ktx", version.ref = "firebaseFunctionsKtx" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }

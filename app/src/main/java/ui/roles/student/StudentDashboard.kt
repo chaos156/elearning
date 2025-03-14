@@ -133,6 +133,36 @@ fun StudentDashboard(navController: NavController) {
                 Spacer(modifier = Modifier.height(16.dp))
 
                 Text(
+                    text = "My Lessons",
+                    style = TextStyle(fontSize = 16.sp, color = MaterialTheme.colors.primary),
+                    modifier = Modifier
+                        .padding(vertical = 8.dp)
+                        .clickable {
+                            navController.navigate("myLessons") // Navigate to View Profile
+                            coroutineScope.launch {
+                                drawerState.close() // Close the drawer after navigating
+                            }
+                        }
+                )
+
+                Spacer(modifier = Modifier.height(16.dp))
+
+                Text(
+                    text = "View Calendar",
+                    style = TextStyle(fontSize = 16.sp, color = MaterialTheme.colors.primary),
+                    modifier = Modifier
+                        .padding(vertical = 8.dp)
+                        .clickable {
+                            navController.navigate("viewCalendar") // Navigate to View Profile
+                            coroutineScope.launch {
+                                drawerState.close() // Close the drawer after navigating
+                            }
+                        }
+                )
+
+                Spacer(modifier = Modifier.height(16.dp))
+
+                Text(
                     text = "Logout",
                     style = TextStyle(fontSize = 16.sp, color = MaterialTheme.colors.primary),
                     modifier = Modifier

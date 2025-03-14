@@ -194,6 +194,21 @@ fun TutorDashboard(navController: NavController) {
                 Spacer(modifier = Modifier.height(16.dp))
 
                 Text(
+                    text = "Calendar",
+                    style = TextStyle(fontSize = 16.sp, color = MaterialTheme.colors.primary),
+                    modifier = Modifier
+                        .padding(vertical = 8.dp)
+                        .clickable {
+                            navController.navigate("createCalender") // Navigate to View Profile
+                            coroutineScope.launch {
+                                drawerState.close() // Close the drawer after navigating
+                            }
+                        }
+                )
+
+                Spacer(modifier = Modifier.height(16.dp))
+
+                Text(
                     text = "Logout",
                     style = TextStyle(fontSize = 16.sp, color = MaterialTheme.colors.primary),
                     modifier = Modifier
