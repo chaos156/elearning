@@ -56,7 +56,8 @@ fun ViewCourses(navController: NavController) {
                 title = { Text("Create Course") },
                 navigationIcon = {
                     IconButton(onClick = {
-                        navController.navigate("tutorDashboard") // Redirect to Tutor Dashboard
+                        // 修复这里，使用popBackStack而不是navigate
+                        navController.popBackStack()
                     }) {
                         Icon(imageVector = Icons.Filled.ArrowBack, contentDescription = "Go Back")
                     }
@@ -134,6 +135,10 @@ fun ViewCourses(navController: NavController) {
                         db.collection("courses").add(courseData)
                             .addOnSuccessListener {
                                 Toast.makeText(context, "Course Created Successfully", Toast.LENGTH_SHORT).show()
+                                // 成功创建课程后清空输入字段
+                                courseName = ""
+                                courseDescription = ""
+                                selectedSubject = "Computer Science"
                             }
                             .addOnFailureListener { e ->
                                 Toast.makeText(context, "Error: ${e.message}", Toast.LENGTH_SHORT).show()
