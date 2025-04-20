@@ -1,52 +1,31 @@
+
 package ui.roles.tutor
 
 import android.annotation.SuppressLint
 import android.widget.Toast
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.Button
-import androidx.compose.material.Card
-import androidx.compose.material.CircularProgressIndicator
-import androidx.compose.material.Icon
-import androidx.compose.material.IconButton
-import androidx.compose.material.MaterialTheme
-import androidx.compose.material.Scaffold
-import androidx.compose.material.Text
-import androidx.compose.material.TopAppBar
+import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.coroutines.tasks.await
+// Add these two imports:
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.foundation.clickable
 
 // Data class for Course
 data class TutorCourse(
@@ -57,6 +36,13 @@ data class TutorCourse(
 )
 
 data class CourseLesson(val id: String = "", val title: String = "")
+
+data class QuizInfo(
+    val id: String,
+    val title: String,
+    val description: String,
+    val timeLimit: Int
+)
 
 @SuppressLint("UnusedMaterialScaffoldPaddingParameter")
 @Composable
@@ -263,6 +249,7 @@ fun CourseStats(navController: NavController, courseId: String) {
     var isLoading by remember { mutableStateOf(true) }
     var errorMessage by remember { mutableStateOf<String?>(null) }
     var showProgressChart by remember { mutableStateOf(true) }
+    var quizzes by remember { mutableStateOf<List<QuizInfo>>(emptyList()) }
 
     // Validate courseId
     LaunchedEffect(Unit) {
@@ -307,6 +294,30 @@ fun CourseStats(navController: NavController, courseId: String) {
 
         enrolledStudents = enrollmentDocs.size()
         println("Enrolled students: $enrolledStudents")
+
+        // 获取测验列表
+        try {
+            val quizzesQuery = db.collection("quizzes")
+                .whereEqualTo("courseId", courseId)
+                .get()
+                .await()
+
+            quizzes = quizzesQuery.documents.mapNotNull { doc ->
+                val quizData = doc.data
+                if (quizData != null) {
+                    QuizInfo(
+                        id = doc.id,
+                        title = quizData["title"] as? String ?: "Untitled Quiz",
+                        description = quizData["description"] as? String ?: "",
+                        timeLimit = (quizData["timeLimit"] as? Long)?.toInt() ?: 30
+                    )
+                } else {
+                    null
+                }
+            }
+        } catch (e: Exception) {
+            println("Error loading quizzes: ${e.message}")
+        }
 
         isLoading = false
     }
@@ -423,6 +434,98 @@ fun CourseStats(navController: NavController, courseId: String) {
                                     style = MaterialTheme.typography.body1,
                                     textAlign = TextAlign.Center
                                 )
+                            }
+                        }
+                    }
+
+                    // 测验部分
+                    Card(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(vertical = 16.dp),
+                        elevation = 4.dp,
+                        shape = RoundedCornerShape(12.dp)
+                    ) {
+                        Column(modifier = Modifier.padding(16.dp)) {
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.SpaceBetween,
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Text(
+                                    text = "Quizzes",
+                                    style = MaterialTheme.typography.h6
+                                )
+
+                                Button(onClick = {
+                                    navController.navigate("createQuiz/$courseId")
+                                }) {
+                                    Text("Add Quiz")
+                                }
+                            }
+
+                            Spacer(modifier = Modifier.height(8.dp))
+
+                            if (quizzes.isEmpty()) {
+                                Text(
+                                    text = "No quizzes available for this course.",
+                                    style = MaterialTheme.typography.body1,
+                                    modifier = Modifier.padding(vertical = 16.dp),
+                                    textAlign = TextAlign.Center
+                                )
+                            } else {
+                                LazyColumn(
+                                    modifier = Modifier.height(300.dp)
+                                ) {
+                                    items(quizzes) { quiz ->
+                                        Card(
+                                            modifier = Modifier
+                                                .fillMaxWidth()
+                                                .padding(vertical = 4.dp),
+                                            elevation = 2.dp
+                                        ) {
+                                            Column(
+                                                modifier = Modifier.padding(16.dp)
+                                            ) {
+                                                Text(
+                                                    text = quiz.title,
+                                                    style = MaterialTheme.typography.subtitle1,
+                                                    fontWeight = FontWeight.Bold
+                                                )
+
+                                                if (quiz.description.isNotEmpty()) {
+                                                    Spacer(modifier = Modifier.height(4.dp))
+                                                    Text(
+                                                        text = quiz.description,
+                                                        style = MaterialTheme.typography.body2
+                                                    )
+                                                }
+
+                                                Spacer(modifier = Modifier.height(4.dp))
+                                                Text(
+                                                    text = "Time Limit: ${quiz.timeLimit} min",
+                                                    style = MaterialTheme.typography.caption
+                                                )
+
+                                                Spacer(modifier = Modifier.height(8.dp))
+
+                                                Row(
+                                                    modifier = Modifier.fillMaxWidth(),
+                                                    horizontalArrangement = Arrangement.End
+                                                ) {
+                                                    OutlinedButton(
+                                                        onClick = {
+                                                            navController.navigate("quizResults/${quiz.id}")
+                                                        },
+                                                        modifier = Modifier.padding(end = 8.dp)
+                                                    ) {
+                                                        Text("View Results")
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
                             }
                         }
                     }

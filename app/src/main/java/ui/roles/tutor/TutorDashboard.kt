@@ -69,6 +69,7 @@ import com.example.elearning.R
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.tasks.await
 
 data class DashboardItem(
     val title: String,
@@ -105,6 +106,7 @@ fun TutorDashboard(navController: NavController) {
     var totalLessons by remember { mutableStateOf(0) }
     var pendingRequests by remember { mutableStateOf(0) }
     var recentActivities by remember { mutableStateOf(listOf<ActivityItem>()) }
+    var userAvatarId by remember { mutableStateOf(R.drawable.profile) } // Default avatar
 
     // Fetch the user's data from Firestore
     LaunchedEffect(user?.uid) {
@@ -113,6 +115,12 @@ fun TutorDashboard(navController: NavController) {
                 .addOnSuccessListener { document ->
                     if (document.exists()) {
                         userName = document.getString("name") ?: "Tutor"
+
+                        // Get avatar ID if it exists, otherwise use default
+                        val avatarId = document.getLong("avatarId")?.toInt()
+                        if (avatarId != null) {
+                            userAvatarId = avatarId
+                        }
                     }
                 }
 
@@ -225,10 +233,9 @@ fun TutorDashboard(navController: NavController) {
         drawerContent = {
             Column(modifier = Modifier.padding(16.dp)) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
-                    // Profile picture or default image
-                    val profileImage = painterResource(id = R.drawable.profile)
+                    // Use the user's selected avatar instead of default
                     Image(
-                        painter = profileImage,
+                        painter = painterResource(id = userAvatarId),
                         contentDescription = "Profile Picture",
                         modifier = Modifier
                             .size(60.dp)
@@ -459,7 +466,7 @@ fun TutorDashboard(navController: NavController) {
 
                 Spacer(modifier = Modifier.height(16.dp))
 
-                // Second row of actions
+// Second row of actions
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.SpaceBetween

@@ -4,11 +4,9 @@ plugins {
     alias(libs.plugins.kotlin.compose)
     id("com.google.gms.google-services")
 }
-
 android {
     namespace = "com.example.elearning"
     compileSdk = 35
-
     defaultConfig {
         applicationId = "com.example.elearning"
         minSdk = 24
@@ -18,7 +16,6 @@ android {
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
-
     buildTypes {
         release {
             isMinifyEnabled = false
@@ -38,8 +35,6 @@ android {
     buildFeatures {
         compose = true
     }
-
-    // 添加这个packaging块来解决META-INF文件冲突
     packaging {
         resources {
             excludes += "/META-INF/DEPENDENCIES"
@@ -55,7 +50,6 @@ android {
         }
     }
 }
-
 dependencies {
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
@@ -75,18 +69,13 @@ dependencies {
     androidTestImplementation(libs.androidx.ui.test.junit4)
     debugImplementation(libs.androidx.ui.tooling)
     debugImplementation(libs.androidx.ui.test.manifest)
-
-    // 使用Firebase BOM统一管理所有Firebase依赖的版本 - 使用正确的可用版本
     implementation(platform("com.google.firebase:firebase-bom:32.6.0"))
-
-    // Firebase 依赖项 - 不指定版本
     implementation("com.google.firebase:firebase-analytics-ktx")
     implementation("com.google.firebase:firebase-auth-ktx")
     implementation("com.google.firebase:firebase-firestore-ktx")
     implementation("com.google.firebase:firebase-storage-ktx")
     implementation("com.google.firebase:firebase-functions-ktx")
     implementation("com.google.firebase:firebase-common-ktx")
-
     implementation(libs.ui)
     implementation(libs.androidx.material)
     implementation(libs.ui.tooling.preview)
@@ -94,25 +83,16 @@ dependencies {
     implementation(libs.androidx.material.v178)
     implementation(libs.kotlinx.coroutines.android)
     implementation(libs.coil.compose)
-
     implementation(libs.material)
-
     implementation(libs.androidx.ui.text)
-
     implementation("com.google.api-client:google-api-client-android:2.0.0")
     implementation("com.google.oauth-client:google-oauth-client-jetty:1.34.1")
     implementation("com.google.apis:google-api-services-gmail:v1-rev20220404-2.0.0")
-
     implementation("com.google.android.gms:play-services-auth:20.0.1")
     implementation("androidx.media3:media3-exoplayer:1.1.1")
     implementation("androidx.media3:media3-ui:1.1.1")
     implementation("androidx.media3:media3-common:1.1.1")
-
-    // 添加 lifecycle-runtime-compose 替代 LocalLifecycleOwner
     implementation("androidx.lifecycle:lifecycle-runtime-compose:2.7.0")
-
     implementation("androidx.media:media:1.6.0")
-
-    // 更新为 AutoMirrored 图标版本
     implementation("androidx.compose.material:material-icons-extended:1.6.0")
 }

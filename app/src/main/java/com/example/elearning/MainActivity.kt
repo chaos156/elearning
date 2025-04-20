@@ -26,11 +26,14 @@ import ui.roles.student.LessonContent
 import ui.roles.student.MyLessons
 import ui.roles.student.StudentBookingScreen
 import ui.roles.student.StudentDashboard
+import ui.roles.student.TakeQuizScreen
 import ui.roles.student.ViewLesson
 import ui.roles.student.ViewStudentProfile
 import ui.roles.tutor.CourseStats
 import ui.roles.tutor.CreateCalendar
 import ui.roles.tutor.CreateLesson
+import ui.roles.tutor.CreateQuizScreen
+import ui.roles.tutor.QuizResultsDashboard
 import ui.roles.tutor.TutorDashboard
 import ui.roles.tutor.ViewCourses
 import ui.roles.tutor.ViewRequests
@@ -107,6 +110,31 @@ class MainActivity : ComponentActivity() {
                             }
                         }
                     }
+                }
+
+                // 测验相关路由
+                composable(
+                    route = "createQuiz/{courseId}",
+                    arguments = listOf(navArgument("courseId") { type = NavType.StringType })
+                ) { backStackEntry ->
+                    val courseId = backStackEntry.arguments?.getString("courseId") ?: ""
+                    CreateQuizScreen(navController = navController, courseId = courseId)
+                }
+
+                composable(
+                    route = "quizResults/{quizId}",
+                    arguments = listOf(navArgument("quizId") { type = NavType.StringType })
+                ) { backStackEntry ->
+                    val quizId = backStackEntry.arguments?.getString("quizId") ?: ""
+                    QuizResultsDashboard(navController = navController, quizId = quizId)
+                }
+
+                composable(
+                    route = "takeQuiz/{quizId}",
+                    arguments = listOf(navArgument("quizId") { type = NavType.StringType })
+                ) { backStackEntry ->
+                    val quizId = backStackEntry.arguments?.getString("quizId") ?: ""
+                    TakeQuizScreen(navController = navController, quizId = quizId)
                 }
 
                 composable(

@@ -56,6 +56,7 @@ fun StudentDashboard(navController: NavController) {
     var completedLessons by remember { mutableStateOf(0) }
     var totalLessons by remember { mutableStateOf(0) }
     var progressPercentage by remember { mutableStateOf(0f) }
+    var userAvatarId by remember { mutableStateOf(R.drawable.profile) } // Default avatar
 
     // Fetch user data and statistics
     LaunchedEffect(user?.uid) {
@@ -64,6 +65,12 @@ fun StudentDashboard(navController: NavController) {
                 // Get user profile data
                 val userDoc = db.collection("users").document(user.uid).get().await()
                 userName = userDoc.getString("name") ?: "Student"
+
+                // Get avatar ID if it exists, otherwise use default
+                val avatarId = userDoc.getLong("avatarId")?.toInt()
+                if (avatarId != null) {
+                    userAvatarId = avatarId
+                }
 
                 // Count enrolled courses
                 val enrollments = db.collection("enrollments")
@@ -148,9 +155,9 @@ fun StudentDashboard(navController: NavController) {
                     verticalAlignment = Alignment.CenterVertically,
                     modifier = Modifier.padding(vertical = 16.dp)
                 ) {
-                    val profileImage = painterResource(id = R.drawable.profile)
+                    // Use the user's selected avatar
                     Image(
-                        painter = profileImage,
+                        painter = painterResource(id = userAvatarId),
                         contentDescription = "Profile Picture",
                         modifier = Modifier
                             .size(60.dp)

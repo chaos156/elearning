@@ -2,12 +2,16 @@ package ui.roles.tutor
 
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.Card
 import androidx.compose.material.CircularProgressIndicator
@@ -214,7 +218,7 @@ fun CourseProgressChart(courseId: String) {
 
 @Composable
 fun SimpleBarChart(data: List<StudentProgress>) {
-    // Check if data is empty
+
     if (data.isEmpty()) {
         Text(
             text = "No data available to display chart",
@@ -225,86 +229,123 @@ fun SimpleBarChart(data: List<StudentProgress>) {
         return
     }
 
+
     val maxHeight = 200.dp
+    val chartBottomPadding = 40.dp
+    val chartLeftPadding = 40.dp
+    val divisions = 5
 
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .height(maxHeight + 64.dp)
+            .height(maxHeight + chartBottomPadding + 24.dp)
+            .padding(start = chartLeftPadding)
     ) {
-        Canvas(
+        Box(
             modifier = Modifier
                 .fillMaxWidth()
                 .height(maxHeight)
         ) {
-            val canvasWidth = size.width
-            val canvasHeight = size.height
+            Canvas(
+                modifier = Modifier.fillMaxSize()
+            ) {
+                val canvasWidth = size.width
+                val canvasHeight = size.height
 
-            // Draw horizontal grid lines
-            val strokeWidth = 1f
-            val divisions = 5
+                // 绘制水平网格线和Y轴标签
+                val strokeWidth = 1f
 
-            for (i in 0..divisions) {
-                val y = canvasHeight - (canvasHeight * i / divisions)
+                for (i in 0..divisions) {
+                    val y = canvasHeight - (canvasHeight * i / divisions)
+                    val labelValue = (i * 100 / divisions) // 0%, 20%, 40%...
 
-                drawLine(
-                    color = Color.LightGray,
-                    start = Offset(0f, y),
-                    end = Offset(canvasWidth, y),
-                    strokeWidth = strokeWidth
-                )
+                    drawLine(
+                        color = Color.LightGray,
+                        start = Offset(0f, y),
+                        end = Offset(canvasWidth, y),
+                        strokeWidth = strokeWidth
+                    )
+                }
+
+                // 绘制柱状图
+                val barCount = data.size
+                val barWidth = if (barCount > 0) canvasWidth / (barCount * 2) else 0f
+
+                data.forEachIndexed { index, progress ->
+                    val percentage = if (progress.totalLessons > 0) {
+                        progress.completedLessons.toFloat() / progress.totalLessons
+                    } else {
+                        0f
+                    }
+
+                    val barHeight = canvasHeight * percentage
+                    val barColor = when {
+                        percentage >= 0.8f -> Color(0xFF4CAF50) // Green
+                        percentage >= 0.5f -> Color(0xFFFFC107) // Yellow
+                        else -> Color(0xFFF44336) // Red
+                    }
+
+                    val left = index * (canvasWidth / barCount) + (canvasWidth / barCount - barWidth) / 2
+                    val top = canvasHeight - barHeight
+
+                    drawRect(
+                        color = barColor,
+                        topLeft = Offset(left, top),
+                        size = Size(barWidth, barHeight)
+                    )
+                }
             }
 
-            // Draw bars
-            val barCount = data.size
-            val barWidth = if (barCount > 0) canvasWidth / (barCount * 2) else 0f
+            // Y轴标签
+            Column(
+                modifier = Modifier
+                    .height(maxHeight),
+                verticalArrangement = Arrangement.SpaceBetween
+            ) {
+                for (i in divisions downTo 0) {
+                    val labelValue = (i * 100 / divisions) // 100%, 80%, 60%...
+                    Text(
+                        text = "$labelValue%",
+                        fontSize = 10.sp,
 
-            data.forEachIndexed { index, progress ->
-                val percentage = if (progress.totalLessons > 0) {
-                    progress.completedLessons.toFloat() / progress.totalLessons
-                } else {
-                    0f
+                        modifier = Modifier.padding(end = 8.dp).offset(x = (-35).dp),
+                        textAlign = TextAlign.End
+                    )
                 }
-
-                val barHeight = canvasHeight * percentage
-                val barColor = when {
-                    percentage >= 0.8f -> Color(0xFF4CAF50) // Green
-                    percentage >= 0.5f -> Color(0xFFFFC107) // Yellow
-                    else -> Color(0xFFF44336) // Red
-                }
-
-                val left = index * (canvasWidth / barCount) + (canvasWidth / barCount - barWidth) / 2
-                val top = canvasHeight - barHeight
-
-                drawRect(
-                    color = barColor,
-                    topLeft = Offset(left, top),
-                    size = Size(barWidth, barHeight)
-                )
             }
         }
 
-        // X-axis labels
+        Spacer(modifier = Modifier.height(8.dp))
+
+        // X轴标签容器改进
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(top = 8.dp),
+                .padding(top = 8.dp, bottom = 8.dp),
             horizontalArrangement = Arrangement.SpaceEvenly
         ) {
             data.forEach { progress ->
-                Text(
-                    text = progress.studentName.take(8) + if (progress.studentName.length > 8) "..." else "",
-                    fontSize = 10.sp,
-                    textAlign = TextAlign.Center,
-                    modifier = Modifier.weight(1f)
-                )
+                Box(
+                    modifier = Modifier.weight(1f),
+                    contentAlignment = Alignment.TopCenter
+                ) {
+
+                    Text(
+                        text = progress.studentName,
+                        fontSize = 10.sp,
+                        textAlign = TextAlign.Center,
+                        maxLines = 2,
+                        modifier = Modifier.width(60.dp)
+                    )
+                }
             }
         }
 
-        // Y-axis label
+        // Y轴总标签
         Text(
             text = "Completion %",
-            fontSize = 10.sp,
+            fontSize = 12.sp,
+            fontWeight = FontWeight.Bold,
             modifier = Modifier.padding(top = 4.dp)
         )
     }
